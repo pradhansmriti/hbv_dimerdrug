@@ -358,7 +358,7 @@ int main(int argc, char **argv)
                 e = g.boundary[ind];
                 if (g.check_inside_overlap(e) > 0)
                 {
-                    ssadd = attempt_add_monomer_dimer_drug(g, e, r);
+                    ssadd = attempt_add_monomer_dimer(g, e, r);
                     if (ssadd > 1)
                         dimeradded++;
                     else if (ssadd > 0)
@@ -367,6 +367,23 @@ int main(int argc, char **argv)
                     g.update_boundary();
                 }
             }
+           move_vertex(g, r);
+            if (gsl_rng_uniform(r) < ps_attempt)
+            {
+                ind = gsl_rng_uniform_int(r, g.boundary.size());
+                e = g.boundary[ind];
+                if (g.check_inside_overlap(e) > 0)
+                {
+                    ssadd = attempt_add_monomer_dimer_drug(g, e, r);
+                    if (ssadd > 1){
+                        dimeradded++;
+                        drugadded++;
+                    }
+                    ssadd = -1;
+                    g.update_boundary();
+                }
+                }
+
         /*}
         else {
                 ind = gsl_rng_uniform_int(r, g.boundary.size());
