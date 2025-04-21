@@ -431,7 +431,25 @@ int main(int argc, char **argv)
                     }
                 }
             }
-
+            ps_attempt = ks0 * g.Nsurf;
+            if (gsl_rng_uniform(r) < ps_attempt)
+            {
+                if (sweep > 0 && g.Nhe > 6)
+                {
+                    ind = gsl_rng_uniform_int(r, g.boundary.size());
+                    e = g.boundary[ind];
+                    if (g.no_bond_boundary(e) > 0)
+                    {
+                        ss = attempt_remove_monomer_dimer_drug(g, e, r);
+                        if (ss > 1)
+                            dimerremoved++;
+                        else if (ss > 0)
+                            monomerremoved++;
+                        ss = 0;
+                        g.update_boundary();
+                    }
+                }
+            }
             if (g.Nhe > 15) 
             {
                 
