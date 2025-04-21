@@ -290,7 +290,7 @@ int main(int argc, char **argv)
     int ssadd = 0;
     //int ssremove = 0;
 
-    int runhpc = 1;
+    int runhpc = 0;
     int test = 0;
 
     int freq_vis = 1000;
@@ -305,7 +305,7 @@ int main(int argc, char **argv)
     if (test == 1)
     {
         freq_vis = 1;
-        freq_log = 1;
+        freq_log = 1000;
         freq_out = 1;
     }
     int minhe_fission = 50;
@@ -442,9 +442,10 @@ int main(int argc, char **argv)
                     {
                         ss = attempt_remove_monomer_dimer_drug(g, e, r);
                         if (ss > 1)
-                            dimerremoved++;
-                        else if (ss > 0)
-                            monomerremoved++;
+			{dimerremoved++;
+			drugremoved++;}
+                        //else if (ss > 0)
+                          //  monomerremoved++;
                         ss = 0;
                         g.update_boundary();
                     }
