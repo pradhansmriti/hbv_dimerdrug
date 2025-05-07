@@ -290,7 +290,7 @@ int main(int argc, char **argv)
     int ssadd = 0;
     //int ssremove = 0;
 
-    int runhpc = 1;
+    int runhpc = 0;
     int test = 0;
 
     int freq_vis = 1000;
@@ -305,7 +305,7 @@ int main(int argc, char **argv)
     if (test == 1)
     {
         freq_vis = 1;
-        freq_log = 1;
+        freq_log = 1000;
         freq_out = 1;
     }
     int minhe_fission = 50;
@@ -358,7 +358,7 @@ int main(int argc, char **argv)
                 e = g.boundary[ind];
                 if (g.check_inside_overlap(e) > 0)
                 {
-                    ssadd = attempt_add_monomer_dimer_drug(g, e, r);
+                    ssadd = attempt_add_monomer_dimer(g, e, r);
                     if (ssadd > 1)
                         dimeradded++;
                     else if (ssadd > 0)
@@ -367,6 +367,23 @@ int main(int argc, char **argv)
                     g.update_boundary();
                 }
             }
+           move_vertex(g, r);
+            if (gsl_rng_uniform(r) < ps_attempt)
+            {
+                ind = gsl_rng_uniform_int(r, g.boundary.size());
+                e = g.boundary[ind];
+                if (g.check_inside_overlap(e) > 0)
+                {
+                    ssadd = attempt_add_monomer_dimer_drug(g, e, r);
+                    if (ssadd > 1){
+                        dimeradded++;
+                        drugadded++;
+                    }
+                    ssadd = -1;
+                    g.update_boundary();
+                }
+                }
+
         /*}
         else {
                 ind = gsl_rng_uniform_int(r, g.boundary.size());
@@ -414,7 +431,26 @@ int main(int argc, char **argv)
                     }
                 }
             }
-
+            ps_attempt = ks0 * g.Nsurf;
+            if (gsl_rng_uniform(r) < ps_attempt)
+            {
+                if (sweep > 0 && g.Nhe > 6)
+                {
+                    ind = gsl_rng_uniform_int(r, g.boundary.size());
+                    e = g.boundary[ind];
+                    if (g.no_bond_boundary(e) > 0)
+                    {
+                        ss = attempt_remove_monomer_dimer_drug(g, e, r);
+                        if (ss > 1)
+			{dimerremoved++;
+			drugremoved++;}
+                        //else if (ss > 0)
+                          //  monomerremoved++;
+                        ss = 0;
+                        g.update_boundary();
+                    }
+                }
+            }
             if (g.Nhe > 15) 
             {
                 

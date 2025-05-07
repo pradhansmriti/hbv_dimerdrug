@@ -23,6 +23,7 @@ int attempt_add_monomer_dimer_drug(Geometry &g, int heid0, gsl_rng *r);
 int attempt_remove_monomer(Geometry &g, int heid0, gsl_rng *r);
 int attempt_remove_dimer(Geometry &g, int heid0, gsl_rng *r);
 int attempt_remove_monomer_dimer(Geometry &g, int heid0, gsl_rng *r);
+int attempt_remove_monomer_dimer_drug(Geometry &g, int heid0, gsl_rng *r);
 int old_attempt_vertex_fusion(Geometry &g, int heid0, gsl_rng *r);
 int attempt_vertex_fusion(Geometry &g, gsl_rng *r);
 

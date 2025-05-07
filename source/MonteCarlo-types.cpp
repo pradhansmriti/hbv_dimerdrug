@@ -278,486 +278,13 @@ int attempt_add_monomer_dimer_drug(Geometry &g, int heid0, gsl_rng *r) //!!! Sho
     //monomer with next
 
     //if (g.he[heindex0].nextid!=-1 && g.he[heindex0].previd!=-1) {std::cout <<" wrong not on boundary" <<endl; std::exit(-1); }
-    int xid = -1;
+    //int xid = -1;
 
     int vid0 = g.is_bond_out_boundary(heid0);
     int vin0 = g.is_bond_in_boundary(heid0);
-
-    if (vid0 >= 0 && g.v[g.vidtoindex[g.he[heindex0].vin]].hein.size() < 6 && g.v[g.vidtoindex[g.he[g.heidtoindex[g.he[heindex0].nextid]].vin]].hein.size() < 6)
-    {
-        // no nead for this check bind triangle will take care of this
-        /*if (g.he[g.heidtoindex[g.he[heindex0].nextid]].next_wedge_fusion_heid != -1 || g.he[g.heidtoindex[g.he[heindex0].nextid]].prev_wedge_fusion_heid != -1)
-        {
-            //std::cout << "g.he[heindex0].next_wedge_fusion_heid "<<g.he[heindex0].next_wedge_fusion_heid<<endl;
-            //std::cout << "g.he[g.heidtoindex[g.he[heindex0].previd]].next_wedge_fusion_heid " << g.he[g.heidtoindex[g.he[heindex0].previd]].next_wedge_fusion_heid<<endl;
-            //std::cout << "g.he[g.heidtoindex[g.he[heindex0].nextid]].next_wedge_fusion_heid" <<g.he[g.heidtoindex[g.he[heindex0].nextid]].next_wedge_fusion_heid <<endl;
-            //std::exit(-1);
-            return -1;
-        }*/
-
-        //std::cout << "00 add monomer with next"<<endl;
-        /* ToDo unify add with next and add with prev */
-        //int thisprev_heid=heid0;
-        //int thisnext_heid=g.he[heindex0].nextid;
-        xid = g.he[heindex0].nextid;
-        int xidindex = g.heidtoindex[xid];
-
-        if (g.is_bond_in_boundary(xid) != vid0 || g.is_bond_out_boundary(xid) != -1)
-        {
-            std::cout << "wrong bound on boundary" << endl;
-            std::exit(-1);
-        }
-        else
-        {
-            //std::cout << "try add monomer" <<endl;
-            int etypenew = -1;
-
-            int etypexid = g.he[g.heidtoindex[xid]].type;
-            // SELECTED TYPES
-
-           /* if ((etypeheid0 == 2) && ((etypexid == 0) || (etypexid == 3)))
-            {
-                etypenew = 1;
-            }
-            else if (((etypeheid0 == 3) || (etypeheid0 == 0)) && (etypexid == 1))
-            {
-                etypenew = 2;
-            }
-            else if (((etypeheid0 == 3) && (etypexid == 3)))
-            {
-                etypenew = 3;
-            }
-            else if (((etypeheid0 == 0) && (etypexid == 0)) || ((etypeheid0 == 1) && (etypexid == 2)))
-            {
-                etypenew = 0;
-            }
-            else if ((etypeheid0 == 1) && (etypexid == 2))
-            {
-                if (gsl_rng_uniform(r) < 0.5)
-                {
-                    etypenew = 0;
-                }
-                else
-                {
-                    etypenew = 3;
-                }
-            }
-            else
-            {
-                etypenew = gsl_rng_uniform_int(r, 4);
-            }*/
-	    etypenew=gsl_rng_uniform_int(r, 4);
-            double e1 = g.bend_energy(heindex0) + g.bend_energy(xidindex);
-            // TYPES BASED ON Concentration
-            /*if (gsl_rng_uniform(r) < g.cdProb) {
-                    if (gsl_rng_uniform(r) < 0.5) {etypenew=0;}
-                    else {etypenew=3; }
-                } 
-                else{
-                    if (gsl_rng_uniform(r) < 0.5) {etypenew=1;}
-                    else {etypenew=2; } 
-
-                }  */
-            // etypenew=gsl_rng_uniform_int(r,4);
-
-            bool drug0 = 0;
-            //bool drug1=0;
-            /*if ((etypenew==3) ||(etypenew==0) ) {
-                if (gsl_rng_uniform(r) < g.drugProb) {drug0=1; }
-                if (gsl_rng_uniform(r) < g.drugProb) {drug1=1;  }
-                }*/
-            //std::cout << "g.he[heindex0].din" << g.he[heindex0].din<<endl;
-            double gbb = g.find_dg(etypenew, etypeheid0, g.he[heindex0].din);
-            gbb += g.find_dg(etypexid, etypenew, drug0);
-            //std::cout << "add_monomer with prev" <<endl;
-
-            //double e1=g.bend_energy(heindex0) + g.bend_energy(xidindex);
-            int x = g.add_monomer(heid0, xid, etypenew);
-            //int Nhelast2index = g.heidtoindex[g.Nhelast - 2];
-            if (x > 0)
-            {
-                //double de=g.monomer_energy(g.Nhelast-1);
-                int voutid = g.he[heindex0].vout;
-                int vinid = g.he[xidindex].vin;
-                vector<int> vecupdate;
-                vecupdate.push_back(vinid);
-                vecupdate.push_back(voutid);
-                g.update_half_edge(heid0);
-                g.update_half_edge(g.he[heindex0].opid);
-                g.update_half_edge(xid);
-                g.update_half_edge(g.he[xidindex].opid);
-                g.update_half_edge(g.Nhelast - 1);
-                //g.he[g.heidtoindex(g.Nhelast-1)].din=drug1;
-                g.update_half_edge(g.Nhelast - 2);
-                //g.he[g.heidtoindex[g.Nhelast-2]].din=drug0;
-                g.he[g.heidtoindex[g.Nhelast - 1]].boundary_index = bi; // update boundary index
-                g.update_boundary();
-
-                //g.update_neigh_vertex(vinid);
-                //g.update_neigh_vertex(voutid);
-                g.update_geometry_vertex(g.vidtoindex[vinid]);
-                g.update_normals_vertex(g.vidtoindex[vinid]);
-                g.update_excluder_top_vertex(g.vidtoindex[vinid]);
-                g.update_geometry_vertex(g.vidtoindex[voutid]);
-                g.update_normals_vertex(g.vidtoindex[voutid]);
-                g.update_excluder_top_vertex(g.vidtoindex[voutid]);
-
-                double de = g.stretch_energy(g.heidtoindex[g.Nhelast - 2]);
-
-                de += g.dimer_bend_energy(g.heidtoindex[g.Nhelast - 2]) + g.dimer_bend_energy(xidindex);
-                de += g.bend_energy(heindex0) + g.bend_energy(xidindex)-e1; // g.dimer_bend_energy(heindex0);
-                //de+=  ; //g.monomer_energy(heid0);
-                //std::cout << " de is " << de <<endl;
-                //double e2=g.compute_energy();
-                //de += g.gb * 3 - g.mu;
-                //gbb=gb0next+gb0prev;
-                de += gbb - g.mu[etypenew];
-                /*int vinid=g.he[g.heidtoindex[g.Nhelast - 1]].vin;
-                    int vindex0=g.vidtoindex[vinid];
-                    g.update_neigh_vertex(vinid);
-                    if (g.v[vindex0].vneigh.size() > 0)
-                    {
-                        for (vector<int>::iterator it =g. v[vindex0].vneigh.begin(); it != g.v[vindex0].vneigh.end(); ++it)
-                        {	
-                            g.update_neigh_vertex(*it);
-                        }
-                    }
-                    int voutid=g.he[g.heidtoindex[g.Nhelast - 1]].vout;
-                    vindex0=g.vidtoindex[voutid];
-                    if (g.v[vindex0].vneigh.size() > 0)
-                    {
-                        for (vector<int>::iterator it =g. v[vindex0].vneigh.begin(); it != g.v[vindex0].vneigh.end(); ++it)
-                        {	
-                            g.update_neigh_vertex(*it);
-                        }
-                    }*/
-
-                //double crit = 2.*g.z*g.K*g.K*g.K*exp((-de)/g.T);
-
-                double crit = exp((-de) / g.T) / 2;
-                int overlapflag = -1;
-
-                /* check overlap */
-                for (vector<int>::iterator it = vecupdate.begin(); it != vecupdate.end(); ++it)
-                {
-                    if (g.check_overlap_g(*it) < 0)
-                        overlapflag = 1;
-                }
-
-                if (gsl_rng_uniform(r) < crit && overlapflag == -1)
-                {
-                    //ToDo
-                    // update next_prevoius surface
-
-                    g.he[g.heidtoindex[g.Nhelast - 1]].boundary_index = bi;
-                    g.v[g.vidtoindex[vid0]].doubleboundary = -1;
-                    //no nead for this -- it should be closed by check bind triangle
-                    /*if (g.he[g.heidtoindex[g.he[xidindex].nextid_boundary]].vout == g.he[g.heidtoindex[g.he[heindex0].previd_boundary]].vin)
-                    {
-                        g.set_prev_next(g.he[heindex0].previd_boundary, g.he[xidindex].nextid_boundary, g.Nhelast - 1);
-                        g.set_prev_next(g.he[xidindex].nextid_boundary, g.Nhelast - 1, g.he[heindex0].previd_boundary);
-                        g.set_prev_next(g.Nhelast - 1, g.he[heindex0].previd_boundary, g.he[xidindex].nextid_boundary);
-                        g.Nboundary--;
-
-                    }*/
-
-                    //std::cout << "00 added monomer with next accepted"<<endl;
-                    vecupdate.clear();
-                    return 1;
-                }
-                /*deleting the added monomer */
-                else
-                {
-                    /* ToDo update this with delete monomer */
-
-                    int nextid0 = g.he[g.heidtoindex[g.Nhelast - 2]].nextid;
-                    int previd0 = g.he[g.heidtoindex[g.Nhelast - 2]].previd;
-                    int nextidboundary0 = g.he[g.heidtoindex[g.Nhelast - 1]].nextid_boundary;
-                    int previdboundary0 = g.he[g.heidtoindex[g.Nhelast - 1]].previd_boundary;
-                    //int xidindex=g.heidtoindex[xid];
-                    if (nextid0 == -1 || previd0 == -1)
-                    {
-                        std::cout << "not accepted in add monomer!" << endl;
-                        std::exit(-1);
-                    }
-                    if (g.delete_edge(g.Nhelast - 1) > 0)
-                    {
-
-                        g.he[heindex0].previd = -1;
-                        g.he[xidindex].nextid = -1;
-
-                        g.update_half_edge(heid0);
-                        g.update_half_edge(g.he[heindex0].opid);
-                        g.update_half_edge(xid);
-                        g.update_half_edge(g.he[xidindex].opid);
-
-                        // update boundary_index
-                        g.he[heindex0].boundary_index = bi;
-                        g.he[xidindex].boundary_index = bi;
-                        g.set_prev_next_boundary(xid, nextidboundary0);
-                        g.set_prev_next_boundary(previdboundary0, heid0);
-                        g.set_prev_next_boundary(heid0, xid);
-                        g.update_index();
-                        //std::cout << " MONOMER REMOVED AFTER addition xid1" <<endl;
-
-                        for (vector<int>::iterator it = vecupdate.begin(); it != vecupdate.end(); ++it)
-                        {
-                            g.update_neigh_vertex(*it);
-                        }
-
-                        // no need to update nex previous surface
-                        //std::cout << "00 added monomer with next removed"<<endl;
-                        vecupdate.clear();
-                        return -1;
-                    }
-                    else
-                    {
-                        std::cout << " could not delete_monomer HERE 4444";
-                        std::exit(-1);
-                    }
-                }
-            }
-            else
-            {
-
-                //std::cout << "could not add monomer" <<endl;
-                return -1;
-            }
-        }
-    }
-
     //adding monomer  with previous
-    else if (vin0 >= 0 && g.v[g.vidtoindex[g.he[heindex0].vout]].hein.size() < 6 && g.v[g.vidtoindex[g.he[g.heidtoindex[g.he[heindex0].previd]].vin]].hein.size() < 6)
-    {
-        //std::cout << "00 add monomer with previous"<<endl;
-        xid = g.he[heindex0].previd;
-        int xidindex = g.heidtoindex[xid];
-        double e1 = g.bend_energy(heindex0) + g.bend_energy(xidindex);
-        if (g.he[g.heidtoindex[g.he[heindex0].previd]].next_wedge_fusion_heid != -1 || g.he[g.heidtoindex[g.he[heindex0].previd]].prev_wedge_fusion_heid != -1)
-        {
-            return -1;
-        }
-
-        if (g.is_bond_out_boundary(xid) != vin0 || g.is_bond_in_boundary(xid) != -1)
-        {
-            std::cout << "wrong bound on boundary" << endl;
-            std::exit(-1);
-        }
-        else
-        {
-
-            int etypexid = g.he[g.heidtoindex[xid]].type;
-            int etypenew = -1;
-            //std::cout  << "add_monomer with previous" <<endl;
-            //BASED on types
-
-            //get_monomer_etype(etypexid,etypeheid0,etypenew)
-           /* if ((etypexid == 2) && ((etypeheid0 == 0) || (etypeheid0 == 3)))
-            {
-                etypenew = 1;
-            }
-            else if (((etypexid == 3) || (etypexid == 0)) && (etypeheid0 == 1))
-            {
-                etypenew = 2;
-            }
-            else if (((etypexid == 3) && (etypeheid0 == 3)))
-            {
-                etypenew = 3;
-            }
-            else if (((etypexid == 0) && (etypeheid0 == 0)) || ((etypexid == 1) && (etypeheid0 == 2)))
-            {
-                etypenew = 0;
-            }
-            else if ((etypexid == 1) && (etypeheid0 == 2))
-            {
-                if (gsl_rng_uniform(r) < .5)
-                {
-                    etypenew = 0;
-                }
-                else
-                {
-                    etypenew = 3;
-                }
-            }
-            else
-            {
-                etypenew = gsl_rng_uniform_int(r, 4);
-            }*/
-	    etypenew=gsl_rng_uniform_int(r, 4);
-            /* if (gsl_rng_uniform(r) < g.cdProb) {
-                    if (gsl_rng_uniform(r) < 0.5) {etypenew=0;}
-                    else {etypenew=3; }
-                } 
-                else{
-                    if (gsl_rng_uniform(r) < 0.5) {etypenew=1;}
-                    else {etypenew=2; } 
-                }*/
-            //CHOOSING RANDOM
-            //etypenew=gsl_rng_uniform_int(r,4);
-
-            //else { std::cout << }
-            bool drug0 = 0;
-            //bool drug1=0;
-            /*if ((etypenew==3) ||(etypenew==0) ) {
-                    if (gsl_rng_uniform(r) < g.drugProb) {drug0=1;}
-                    if (gsl_rng_uniform(r) < g.drugProb) {drug1=1;}
-                }*/
-            double gbb = g.find_dg(etypenew, etypexid, g.he[g.heidtoindex[xid]].din);
-            gbb += g.find_dg(etypeheid0, etypenew, drug0);
-
-            //double e1=g.bend_energy(heindex0) + g.bend_energy(xidindex);
-            int x = g.add_monomer(xid, heid0, etypenew);
-            if (x > 0)
-            {
-                int vinid = g.he[heindex0].vin;
-                int voutid = g.he[xidindex].vout;
-                vector<int> vecupdate;
-                vecupdate.push_back(vinid);
-                vecupdate.push_back(voutid);
-                //double de = (g.stretch_energy(g.heidtoindex[g.Nhelast-2]) + g.bend_energy(g.heidtoindex[g.Nhelast-2]));
-                g.update_half_edge(heid0);
-                g.update_half_edge(g.he[g.heidtoindex[heid0]].opid);
-                g.update_half_edge(xid);
-                g.update_half_edge(g.he[g.heidtoindex[xid]].opid);
-                g.update_half_edge(g.Nhelast - 1);
-                //g.he[g.heidtoindex(g.Nhelast-1)].din=drug1;
-                g.update_half_edge(g.Nhelast - 2);
-                //g.he[g.heidtoindex[g.Nhelast-2]].din=drug0;
-                g.update_boundary();
-
-                
-                //g.update_neigh_vertex(vinid);
-                //g.update_neigh_vertex(voutid);
-                g.update_geometry_vertex(g.vidtoindex[vinid]);
-                g.update_normals_vertex(g.vidtoindex[vinid]);
-                g.update_excluder_top_vertex(g.vidtoindex[vinid]);
-                g.update_geometry_vertex(g.vidtoindex[voutid]);
-                g.update_normals_vertex(g.vidtoindex[voutid]);
-                g.update_excluder_top_vertex(g.vidtoindex[voutid]);
-
-
-
-                double de = g.stretch_energy(g.heidtoindex[g.Nhelast - 2]);
-                de += g.dimer_bend_energy(g.heidtoindex[g.Nhelast - 2]) + g.dimer_bend_energy(heindex0);
-                de += g.bend_energy(heindex0) + g.bend_energy(xidindex)-e1;
-
-                //std::cout << " crit is " << crit << endl;
-                de += gbb - g.mu[etypenew];
-
-                /*int vinid=g.he[g.heidtoindex[g.Nhelast - 1]].vin;
-                    int vindex0=g.vidtoindex[vinid];
-                    
-                    if (g.v[vindex0].vneigh.size() > 0)
-                    {
-                        for (vector<int>::iterator it =g. v[vindex0].vneigh.begin(); it != g.v[vindex0].vneigh.end(); ++it)
-                        {	
-                            g.update_neigh_vertex(*it);
-                        }
-                    }
-                    int voutid=g.he[g.heidtoindex[g.Nhelast - 1]].vout;
-                    vindex0=g.vidtoindex[voutid];
-                    if (g.v[vindex0].vneigh.size() > 0)
-                    {
-                        for (vector<int>::iterator it =g. v[vindex0].vneigh.begin(); it != g.v[vindex0].vneigh.end(); ++it)
-                        {	
-                            g.update_neigh_vertex(*it);
-                        }
-                    }*/
-
-                double crit = exp((-de) / g.T) / 2;
-                int overlapflag = -1;
-
-                /* check overlap */
-                for (vector<int>::iterator it = vecupdate.begin(); it != vecupdate.end(); ++it)
-                {
-                    if (g.check_overlap_g(*it) < 0)
-                        overlapflag = 1;
-                }
-
-                if (gsl_rng_uniform(r) < crit && overlapflag == -1)
-                {
-                    // ToDo
-                    // update next_previous boundary
-                    //std::cout << "00 monomer added"<<endl;
-                    g.he[g.heidtoindex[g.Nhelast - 1]].boundary_index = bi;
-                    g.v[g.vidtoindex[vin0]].doubleboundary = -1;
-
-                    // if triangle otherside close it
-                    if (g.he[g.heidtoindex[g.he[xidindex].previd_boundary]].vin == g.he[g.heidtoindex[g.he[heindex0].nextid_boundary]].vout)
-                    {
-                        g.set_prev_next(g.he[xidindex].previd_boundary, g.he[heindex0].nextid_boundary, g.Nhelast - 1);
-                        g.set_prev_next(g.he[heindex0].nextid_boundary, g.Nhelast - 1, g.he[xidindex].previd_boundary);
-                        g.set_prev_next(g.Nhelast - 1, g.he[xidindex].previd_boundary, g.he[heindex0].nextid_boundary);
-                        g.Nboundary--;
-                    }
-                    //std::cout <<"00 added with previous accepted" <<endl;
-                    vecupdate.clear();
-                    return 1;
-                }
-                /*deleting the added monomer */
-                else
-                {
-
-                    int nextid0 = g.he[g.heidtoindex[g.Nhelast - 2]].nextid;
-                    int previd0 = g.he[g.heidtoindex[g.Nhelast - 2]].previd;
-                    int nextidboundary0 = g.he[g.heidtoindex[g.Nhelast - 1]].nextid_boundary;
-                    int previdboundary0 = g.he[g.heidtoindex[g.Nhelast - 1]].previd_boundary;
-
-                    if (nextid0 == -1 || previd0 == -1)
-                    {
-                        std::cout << "not accepted in add monomer!" << endl;
-                        std::exit(-1);
-                    }
-                    //std::cout << "!!!!!!!" <<endl;
-                    int xidindex = g.heidtoindex[xid];
-                    if (g.delete_edge(g.he[g.Nhe - 1].id) > 0)
-                    {
-
-                        g.he[heindex0].nextid = -1;
-                        g.he[xidindex].previd = -1;
-
-                        g.update_half_edge(heid0);
-                        g.update_half_edge(g.he[heindex0].opid);
-                        g.update_half_edge(xid);
-                        g.update_half_edge(g.he[xidindex].opid);
-
-                        // update // update boundary_index
-
-                        g.he[heindex0].boundary_index = bi;
-                        g.he[xidindex].boundary_index = bi;
-                        g.set_prev_next_boundary(heid0, nextidboundary0);
-                        g.set_prev_next_boundary(previdboundary0, xid);
-                        g.set_prev_next_boundary(xid, heid0);
-                        g.update_index();
-
-                        //std::cout << " MONOMER REMOVED AFTER addition xid2" <<endl;
-
-                        for (vector<int>::iterator it = vecupdate.begin(); it != vecupdate.end(); ++it)
-                        {
-                            g.update_neigh_vertex(*it);
-                        }
-
-                        //ToDo update next_previous boundary
-
-                        //std::cout <<"00 added with previous not accepted" <<endl;
-                        vecupdate.clear();
-                        return -1;
-                    }
-                    else
-                    {
-                        std::cout << " could not delete_monomer HERE 555";
-                        std::exit(-1);
-                    }
-                }
-            }
-            else
-            {
-                //std::cout << "could not add monomer" << endl;
-                return -1;
-            }
-        }
-    }
-    else if (g.v[g.vidtoindex[g.he[heindex0].vin]].hein.size() < 6 && (g.v[g.vidtoindex[g.he[heindex0].vout]].hein.size()) < 6) //adding dimer
+    
+    if (g.v[g.vidtoindex[g.he[heindex0].vin]].hein.size() < 6 && (g.v[g.vidtoindex[g.he[heindex0].vout]].hein.size()) < 6) //adding dimer
     {
         if (vin0 >= 0 || vid0 >= 0)
         {
@@ -765,61 +292,27 @@ int attempt_add_monomer_dimer_drug(Geometry &g, int heid0, gsl_rng *r) //!!! Sho
         }
 
         //get_dimer_etypes(*etypeheid0,*etypenew1,etypenew2,r);
+        
+
+        if (etypeheid0 == 3 )
+            {
+                etypenew1 = 3;
+                etypenew2 = 3;
+            } 
+        
         if (etypeheid0 == 0)
-        {
-            if (gsl_rng_uniform(r) < .5)
-            {
-                etypenew1 = 1;
-                etypenew2 = 2;
-            } //ba
-            else
             {
                 etypenew1 = 0;
                 etypenew2 = 0;
             }
+        else{
+            return(-1);
         }
+        
 
-        else if (etypeheid0 == 3)
-        {
-            if (gsl_rng_uniform(r) < .5)
-            {
-                etypenew1 = 3;
-                etypenew2 = 3;
-            } //ba
-            else
-            {
-                etypenew1 = 1;
-                etypenew2 = 2;
-            }
-        }
+        
 
-        else if (etypeheid0 == 1)
-        {
-            if (gsl_rng_uniform(r) < .5)
-            {
-                etypenew1 = 2;
-                etypenew2 = 0;
-            } //ba
-            else
-            {
-                etypenew1 = 2;
-                etypenew2 = 3;
-            }
-        }
-
-        else if (etypeheid0 == 2)
-        {
-            if (gsl_rng_uniform(r) < .5)
-            {
-                etypenew1 = 0;
-                etypenew2 = 1;
-            }
-            else
-            {
-                etypenew1 = 3;
-                etypenew2 = 1;
-            }
-        }
+        
         //std::cout << "adding dimer"<<endl;
         // Based on concentration
         /*    if (gsl_rng_uniform(r) < g.cdProb) {
@@ -848,11 +341,7 @@ int attempt_add_monomer_dimer_drug(Geometry &g, int heid0, gsl_rng *r) //!!! Sho
         bool drug1 = 0;
         bool drug2 = 0;
         //bool drug10=0;
-        //bool drug20=0;
-        if((etypenew1==3 || etypenew1==0) && (etypenew2==3 || etypenew2==0)){
-            drug2=1;
-            //g.Nd++;
-        }
+        //bool drug20=0; 
         /*if ((etypenew1==3) ||(etypenew1==0) ) {
                 if (gsl_rng_uniform(r) < g.drugProb) {drug1=1;}
                 if (gsl_rng_uniform(r) < g.drugProb) {drug10=1;}
@@ -864,6 +353,7 @@ int attempt_add_monomer_dimer_drug(Geometry &g, int heid0, gsl_rng *r) //!!! Sho
 
         //std::cout << "types " << etype1 <<" " << etype2<<endl;
         //double gbb=g.find_gbb(etypeheid0,etypenew1,etypenew2);
+        drug2 = 1;
         double gbb = g.find_dg(etypeheid0, etypenew1, drug1);
         gbb += g.find_dg(etypenew1, etypenew2, drug2);
         gbb += g.find_dg(etypenew2, etypeheid0, g.he[heindex0].din);
@@ -960,7 +450,8 @@ int attempt_add_monomer_dimer_drug(Geometry &g, int heid0, gsl_rng *r) //!!! Sho
             // update next_previous boundary
             g.he[g.heidtoindex[g.Nhelast - 3]].boundary_index = bi;
             g.he[g.heidtoindex[g.Nhelast - 1]].boundary_index = bi;
-            if(drug2==1){g.Nd++;}
+            g.Nd++;
+            //if(drug2==1){g.Nd++;}
             //std::cout << "00 added dimer accepeted" <<endl;
             vecupdate.clear();
 
@@ -1830,7 +1321,442 @@ int attempt_add_monomer_dimer(Geometry &g, int heid0, gsl_rng *r) //!!! Should u
     }
     return -1;
 }
+int attempt_remove_monomer_dimer_drug(Geometry &g, int heid0, gsl_rng *r) /* 102220 THIS NEEDS UPDATE -> MOVE GEOMETRY TO geometry! */
+{
+    //std::cout << "in attempt_remove_monomer_dimer" << endl;
+    //std::cout << "Nd is " <<g.Nd <<endl;
 
+    if (!(g.is_boundary(heid0) > 0))
+    {
+        std::cout << "not on boundary cannot remove" << endl;
+        std::exit(-1);
+    }
+
+    g.update_half_edge(heid0);
+    int heindex0 = g.heidtoindex[heid0]; // index of this edge
+    //int heid0type=g.he[heindex0].type;
+    if ((g.he[heindex0].nextid != -1) || (g.he[heindex0].previd != -1))
+    {
+        //std::cout << " has next or previous cannot remove" << endl;
+        return -1;
+    }
+
+    int bi = g.he[heindex0].boundary_index;
+    if (bi == -1)
+    {
+        std::cout << "Error in boundary index in remove_monomer_dimer" << endl;
+        std::exit(-1);
+    }
+
+    g.update_half_edge(g.he[heindex0].opid);
+
+    int heopindex0 = g.heidtoindex[g.he[heindex0].opid]; // indexd of opposite edge
+    int optype = g.he[heopindex0].type;
+    int nextopid0 = g.he[heopindex0].nextid; // id of next of opposite edge
+    int prevopid0 = g.he[heopindex0].previd;
+    //std::cout << " nextopid0 " << nextopid0 << " prevopid0 " <<prevopid0 <<endl;
+    if ((nextopid0 == -1) || (prevopid0 == -1))
+    {
+        std::cout << "wrong geometry" << endl;
+        std::exit(-1);
+    }
+    int nextopindex0 = g.heidtoindex[nextopid0]; // id of prev of opposite edge
+    int prevopindex0 = g.heidtoindex[prevopid0];
+    int opnexttype = g.he[nextopindex0].type;
+    int opprevtype = g.he[prevopindex0].type;
+
+    if ((g.he[heindex0].din == 1))
+    {
+        //std::cout << " din=1 "<<endl;
+        return (-1);
+    }                                    // WITH DRUG NO REMOVAL
+    int heid_prev_boundary = g.he[nextopindex0].opid; // now back to this side // ToDo this should be previd_boundary
+    int heid_next_boundary = g.he[prevopindex0].opid; // after vertex // ToDo this should be nextid_boundary
+
+    double gbb = 0;
+
+    // remove monomer
+    // first try remove monomer, if the edge is not a wedge, remove dimer
+    if (g.is_boundary(heid_prev_boundary) < 0 && g.is_boundary(heid_next_boundary) < 0)
+    {
+     if ((g.is_vboundary(g.he[nextopindex0].vout) < 0 || g.Nboundary != 1) && \
+       (g.v[g.vidtoindex[g.he[heindex0].vout]].doubleboundary==-1 && g.v[g.vidtoindex[g.he[heindex0].vin]].doubleboundary==-1 ) )// if Nboundary>0 allow for double boundary;
+    {                                                                                                                               //delete monomer
+        return -1;                                                                                                                               //delete monomer
+        //std::cout << "in deleting monomer" <<endl;
+        //if (g.is_vboundary(g.he[g.heidtoindex[nextopid0]].vout) > 0) { std::cout << "v on boundary wrong geometry!"<<endl; std::exit(-1);}
+        /*if ((g.he[nextopindex0].din == 1) || g.he[prevopindex0].din == 1)
+        {
+            return (-1);
+        }
+
+        double de = -(g.stretch_energy(heindex0));
+        int nextboundary0 = g.he[heindex0].nextid_boundary;
+        int prevboundary0 = g.he[heindex0].previd_boundary;
+        //if (g.he[heindex0].previd!=-1) { de-=g.dimer_bend_energy(g.get_heindex(g.he[heindex0].previd)); }
+        //if (g.he[heindex0].nextid!=-1) {de-=g.dimer_bend_energy(heindex0); }
+        de -= (g.dimer_bend_energy(heopindex0) + g.dimer_bend_energy(prevopindex0));
+        //de -= g.bend_energy(nextopindex0) + g.bend_energy(prevopindex0); //g.monomer_energy(heid0);
+
+        gbb += g.find_dg(opprevtype, optype, g.he[heopindex0].din);
+        gbb += g.find_dg(optype, opnexttype, g.he[nextopindex0].din);
+
+        de -= (gbb - g.mu[g.he[heindex0].type]);
+        double crit = 2 * exp(-de / g.T); ///(2.0*g.z*g.K*g.K*g.K);
+
+        if (g.Test_assembly == 1)
+        {
+            std::cout << "crit is " << crit << endl;
+            crit = 1;
+        }
+        if (gsl_rng_uniform(r) < crit)
+        {
+            //g.Nd-=g.he[heopindex0].din;
+            //g.Nd-=g.he[heindex0].din;
+            //std::cout << "REMOVING MONOMER two drugs removed " << g.he[heopindex0].din + g.he[heindex0].din <<endl;
+
+            //std::cout << "de is" <<de <<endl;
+            //std::cout << "crit is  " << crit <<endl;
+            //if ( g.he[heindex0].previd!=-1) {g.he[g.get_heindex(g.he[heindex0].previd)].nextid=-1;}
+            //if (g.he[heindex0].nextid!=-1) {g.he[g.get_heindex(g.he[heindex0].nextid)].previd=-1; }
+            //std::cout << "g.he[heopindex0].previ " << g.he[heopindex0].previd <<endl;
+            //std::cout << "g.he[prevopindex0].nextid " << g.he[prevopindex0].nextid <<endl;
+            //std::cout << "g.he[heopindex0].nextid " << g.he[heopindex0].nextid <<endl;
+            //std::cout << "g.he[nextopindex0].previd" << g.he[nextopindex0].previd <<endl;
+            if (g.he[heopindex0].previd != -1)
+            {
+                g.he[prevopindex0].nextid = -1;
+            }
+            if (g.he[heopindex0].nextid != -1)
+            {
+                g.he[nextopindex0].previd = -1;
+            }
+
+            //ToDo -> Done
+            //update new edges boundary index
+            //update new edges nex_boundary
+            g.he[nextopindex0].boundary_index = bi;
+            g.he[prevopindex0].boundary_index = bi;
+
+            g.set_prev_next_boundary(nextopid0, prevopid0);
+            g.set_prev_next_boundary(prevboundary0, nextopid0);
+            g.set_prev_next_boundary(prevopid0, nextboundary0);
+
+            if (g.is_vboundary(g.he[nextopindex0].vout) > 0)
+                g.v[g.vidtoindex[g.he[nextopindex0].vout]].doubleboundary = 1;
+
+            int vidin = g.he[heindex0].vin;
+            int vidout = g.he[heindex0].vout;
+
+            int x = g.delete_edge(heid0);
+            //g.update_edge();_
+
+            if (x < 0)
+            {
+                std::cout << "could not delete " << endl;
+                std::exit(-1);
+            }
+            //
+
+            //g.set_prev_next(nextopid0, -1, prevopid0);
+            //g.set_prev_next(prevopid0, nextopid0, -1);
+            //std::cout << "00 monomer removed" <<endl;
+            //std::cout << " 004 g.Nd is " <<g.Nd<<endl;
+            g.update_index();
+            g.update_neigh_vertex(vidin);
+            g.update_neigh_vertex(vidout);
+
+            //std::cout << " 005 g.Nd is " <<g.Nd<<endl;
+
+            return 1;
+        }
+        else
+        {
+            //std::cout << " remove monomer not accepted  " << endl;
+            //g.add_monomer(nextopid0, prevopid0,optype);
+
+            return -1;
+        }*/
+    }
+    }
+            else // edge is not wedge so remove dimer //with previous or next
+    {
+
+        int heindex_prev_boundary = g.heidtoindex[heid_prev_boundary];
+        int heindex_next_boundary = g.heidtoindex[heid_next_boundary];
+        //double *vco=new double[3];
+        //remove dimer
+        if (g.is_boundary(heid_prev_boundary) > 0 && g.he[heindex_prev_boundary].previd == -1 && g.v[g.vidtoindex[g.he[heindex0].vin]].doubleboundary==-1) //delete dimer this and next (inside)(nextopindex) / this and prev (on boundary)  there should be nno bonds between this and previous
+        {
+            //std::cout << "00 remove dimer with next (previd_boundary) "<<endl;  //remove this and previd_boundary=heid_prev_boundary
+            if (g.he[g.heidtoindex[nextopid0]].din == 1 )
+            {
+            if (g.he[heindex0].type == 0 || g.he[heindex0].type==3)
+            {
+            if(g.he[heindex_prev_boundary].type==0 || g.he[heindex_prev_boundary].type==3)
+            {
+            
+
+            // int yid=g.he[heindex0].nextid;
+            int vi = g.he[heopindex0].vout;
+
+            //gbb+= g.find_gbb(optype,opnexttype,opprevtype); //whole triangle
+            gbb += g.find_dg(optype, opnexttype, g.he[g.heidtoindex[nextopid0]].din);
+            gbb += g.find_dg(opnexttype, opprevtype, g.he[prevopindex0].din);
+            gbb += g.find_dg(opprevtype, optype, g.he[heopindex0].din);
+            double de = -(g.stretch_energy(heindex0) + g.stretch_energy(g.heidtoindex[heid_prev_boundary]));
+            de -= g.bend_energy(g.heidtoindex[heid_next_boundary]);
+
+            de -= (g.dimer_bend_energy(heopindex0));
+            de -= (g.dimer_bend_energy(nextopindex0) + g.dimer_bend_energy(prevopindex0));
+            //if (yid!=-1) {  de-=g.dimer_bend_energy(heindex0);}
+
+            //if (xid!=-1 && g.he[xindex].nextid==heid_prev_boundary) {
+            //    gbb+=g.find_dg( g.he[xindex].type,g.he[g.heidtoindex[heid_prev_boundary]].type);
+            //     de-=g.dimer_bend_energy(xindex);
+            //xidconnect=1;
+            //}
+
+            
+            /* test !!!!
+                if (abs(de-(g.compute_energy()-e11)>0.0000000001)) 
+                {//std::cout << "in remove dimer 111 des don't match" << de-(g.compute_energy()-e11) << endl; 
+                std::cout << "e11 "<< e11 <<endl; std::cout << "de "<< de <<endl; std::cout << "g.compute_energy() "<< g.compute_energy() <<endl;  
+                std::cout << "g.compute_energy() -e11 "<< g.compute_energy()-e11 <<endl; std::exit(-1);} */
+
+            de -= (gbb - (g.mu[g.he[heindex0].type] + g.mu[g.he[heindex_prev_boundary].type]));
+            //
+            //**************************
+            // gaussian correction
+            //**************************
+            double *tempv1 = new double[3];
+            //double *dis_vector=new double[3];
+            int heidtemp=g.he[nextopindex0].nextid;
+            g.new_vertex_edge(g.heidtoindex[heidtemp], tempv1,g.he[heopindex0].type); // heopindex0 = g.heidtoindex[g.he[g.heidtoindex[heidtemp]].nextid]
+            //std::cout<<"tmpv1 "<< tempv1[0] <<" "<<tempv1[1] <<" "<<tempv1[2] <<" "<<endl;
+            double dis_new=veclen(tempv1,g.v[g.vidtoindex[vi]].co);
+            //std::cout<<dis_new << " " << isnan(dis_new)<<endl;
+            //if (isnan(dis_new)) std::exit(-1);
+            //subvec(tempv1,g.v[g.vidtoindex[vi]].co,dis_vector);
+            //double dis_new=g.find_project_dist_axes(g.heidtoindex[heidtemp], tempv1, g.v[g.vidtoindex[vi]].co , dis_vector );
+            //############# dist remove
+            /*ofstream myfile;
+            myfile.open ("removedist.txt", ios::out | ios::app);
+            myfile <<dis_new<<endl;
+            myfile.close();*/
+            //std::cout<<x<<endl;
+            delete[] tempv1;
+            //double vp = 1/(gsl_ran_gaussian_pdf(dis_new, g.gaussian_sigma));
+            double vp = pow((sqrt(2*Pi)*g.gaussian_sigma),3)/( exp(-((dis_new*dis_new)/(2*g.gaussian_sigma*g.gaussian_sigma))) );
+            double crit = exp(-de / g.T) / (2 * vp); 
+            //std::cout << " crit is " << crit << endl;
+            if (gsl_rng_uniform(r) < crit) //delete dimer this and next (inside)(nextopindex) / this and prev (on boundary)
+            {
+                int nextidboundary0 = g.he[g.heidtoindex[heid0]].nextid_boundary;
+                int previdboundary0 = g.he[g.heidtoindex[heid_prev_boundary]].previd_boundary;
+
+                vector<int> vecupdate;
+                if (g.v[g.vidtoindex[vi]].vneigh.size() > 0)
+                {
+                    for (vector<int>::iterator it = g.v[g.vidtoindex[vi]].vneigh.begin(); it != g.v[g.vidtoindex[vi]].vneigh.end(); ++it)
+                    {
+                        vecupdate.push_back(*it);
+                    }
+                }
+                //std::cout << " 006 g.Nd is " <<g.Nd<<endl;
+
+                //WITHDRUG No removal
+                g.Nd-=g.he[heindex0].din;
+                g.Nd-=g.he[heopindex0].din;
+                g.Nd-=g.he[heindex_prev_boundary].din;
+                g.Nd-=g.he[nextopindex0].din;
+
+                //std::cout << "REMOVING DIMER four drugs removed " << g.he[heopindex0].din + g.he[heindex0].din +  g.he[heindex_prev_boundary].din + g.he[nextopindex0].din<<endl;
+                //std::cout << "removing heid0 and heid_prev_boundary " << heid0 <<" " << heid_prev_boundary <<endl;
+                int success = g.delete_edge(heid0);
+                if (success < 0)
+                {
+                    std::cout << "!!!" << endl;
+                    std::exit(-1);
+                }
+                g.update_index();
+                success = g.delete_edge(heid_prev_boundary); // next of op
+                if (success < 0)
+                {
+                    std::cout << "!!!" << endl;
+                    std::exit(-1);
+                }
+                g.update_index();
+                int x = g.delete_vertex(vi);
+                if (x < 0)
+                {
+                    std::exit(-1);
+                }
+
+                g.set_prev_next(prevopid0, -1, -1); //prev of op
+                g.he[g.heidtoindex[prevopid0]].boundary_index = bi;
+                g.set_prev_next_boundary(prevopid0, nextidboundary0);
+                g.set_prev_next_boundary(previdboundary0, prevopid0);
+                //update new edges nex_boundary
+
+                g.update_index();
+                for (vector<int>::iterator it = vecupdate.begin(); it != vecupdate.end(); ++it)
+                {
+                    g.update_neigh_vertex(*it);
+                }
+
+                //ToDo
+                //update new edges boundary index
+
+                //std::cout << "00 remove dimer with next accepted "<<endl;
+                vecupdate.clear();
+                return 2;
+            }
+            // no need for anything if removal cannot happen
+            else
+            {
+                //std::cout << "00 remove dimer with previous not accepted "<<endl;
+                return 0;
+            }
+        }
+        }
+        }
+        }
+        else if (g.is_boundary(heid_next_boundary) > 0 && g.he[heindex_next_boundary].nextid == -1) //delete dimer this and previous (inside)(prevopindex) / this and next (on boundary) there should be no bonds between next_boudary and its next
+        {                                                                 //delete dimer this and prev
+
+            //std::cout << "00 remove dimer with previous (heid_next_boundary) "<<endl; //with opid_boundary=heid_next_boundary
+            //if (g.he[g.heidtoindex[heid_next_boundary]].din==1) return -1;
+            //if (g.he[heindex_next_boundary].din==1 || g.he[g.heidtoindex[prevopid0]].din==1 ) { return(-1);} //WITHDRUG no removal
+            if (g.he[heopindex0].din == 1)
+            {
+            if (g.he[heindex0].type == 0 || g.he[heindex0].type==3)
+            {
+            if(g.he[heindex_next_boundary].type==0 || g.he[heindex_next_boundary].type==3)
+            {
+            
+             //NOREMOVAL DRUG
+            int vi = g.he[heopindex0].vin;
+
+            //gbb+= g.find_gbb(optype,opnexttype,opprevtype); //whole triangle
+            gbb += g.find_dg(optype, opnexttype, g.he[g.heidtoindex[nextopid0]].din);
+            gbb += g.find_dg(opnexttype, opprevtype, g.he[g.heidtoindex[prevopid0]].din);
+            gbb += g.find_dg(opprevtype, optype, g.he[heopindex0].din);
+            double de = -(g.stretch_energy(heindex0) + g.stretch_energy(g.heidtoindex[heid_next_boundary]));
+            de -= g.bend_energy(g.heidtoindex[heid_prev_boundary]);
+
+            de -= (g.dimer_bend_energy(heopindex0));
+            de -= (g.dimer_bend_energy(g.heidtoindex[nextopid0]) + g.dimer_bend_energy(g.heidtoindex[prevopid0]));
+
+            de -= (gbb - (g.mu[g.he[heindex0].type] + g.mu[g.he[heindex_next_boundary].type]));
+
+            //**************************
+            // gaussian correction
+            //**************************
+            double *tempv1 = new double[3];
+            //double *dis_vector=new double[3];
+            int heidtemp=g.he[heopindex0].nextid;
+            g.new_vertex_edge(g.heidtoindex[heidtemp], tempv1,g.he[prevopindex0].type); // prevopindex = ? g.heidtoindex[g.he[g.heidtoindex[heidtemp]].nextid]
+            double dis_new=veclen(tempv1,g.v[g.vidtoindex[vi]].co);
+            //std::cout<<"tmpv1 "<< tempv1[0] <<" "<<tempv1[1] <<" "<<tempv1[2] <<" "<<endl;
+            //std::cout<<dis_new << " " << isnan(dis_new)<<endl;
+            if (isnan(dis_new)) std::exit(-1);
+            //subvec(tempv1,g.v[g.vidtoindex[vi]].co,dis_vector);
+            // dis_new=g.find_project_dist_axes(g.heidtoindex[heidtemp], tempv1, g.v[g.vidtoindex[vi]].co , dis_vector );
+            //############# dist remove
+            /*ofstream myfile;
+            myfile.open ("removedist.txt", ios::out | ios::app);
+            myfile <<dis_new<<endl;
+            myfile.close();*/
+            //std::cout<<x<<endl;
+            delete[] tempv1;
+
+            //double vp = 1/(gsl_ran_gaussian_pdf(dis_new, g.gaussian_sigma));
+
+            double vp = pow((sqrt(2*Pi)*g.gaussian_sigma),3)/( exp(-((dis_new*dis_new)/(2*g.gaussian_sigma*g.gaussian_sigma))) );
+
+            double crit = exp(-de / g.T) / (2 * vp);
+            //delete[] dis_vector;
+            //std::cout << " crit is " << crit << endl;
+            if (gsl_rng_uniform(r) < crit)
+            {
+                //std::cout << " 008 g.Nd is " <<g.Nd<<endl;
+                int nextidboundary0 = g.he[g.heidtoindex[heid_next_boundary]].nextid_boundary;
+                int previdboundary0 = g.he[g.heidtoindex[heid0]].previd_boundary;
+                g.Nd-=g.he[heindex0].din;
+                g.Nd-=g.he[heopindex0].din;
+                g.Nd-=g.he[heindex_next_boundary].din;
+                g.Nd-=g.he[prevopindex0].din;
+                //std::cout << "REMOVING DIMER four drugs removed " << g.he[heopindex0].din + g.he[heindex0].din +  g.he[heindex_next_boundary].din + g.he[prevopindex0].din<<endl;
+                vector<int> vecupdate;
+                if (g.v[g.vidtoindex[vi]].vneigh.size() > 0)
+                {
+                    for (vector<int>::iterator it = g.v[g.vidtoindex[vi]].vneigh.begin(); it != g.v[g.vidtoindex[vi]].vneigh.end(); ++it)
+                    {
+                        vecupdate.push_back(*it);
+                    }
+                }
+                int success = g.delete_edge(heid0);
+                if (success < 0)
+                {
+                    std::cout << "!!!heid_next_boundary-0" << endl;
+                    std::exit(-1);
+                }
+                g.update_index();
+                success = g.delete_edge(heid_next_boundary); // next of op
+                if (success < 0)
+                {
+                    std::cout << "!!!heid_next_boundary-2" << endl;
+                    std::exit(-1);
+                }
+                g.update_index();
+                int x = g.delete_vertex(vi);
+                if (x < 0)
+                {
+                    std::exit(-1);
+                }
+                g.set_prev_next(nextopid0, -1, -1); //prev of op
+                g.he[g.heidtoindex[nextopid0]].boundary_index = bi;
+                g.set_prev_next_boundary(previdboundary0, nextopid0);
+                g.set_prev_next_boundary(nextopid0, nextidboundary0);
+                //update new edges nex_boundary
+
+                //g.update_half_edge(nextopid0);
+                //g.update_half_edge(heid_prev_boundary);
+
+                //multvec(g.v[g.vidtoindex(vi)].co,1,vco);
+
+                //double de= g.compute_energy()-e1;
+                //gbb=gb0next+gbnextprev+gb0prev;
+
+                //delete[] vco;
+                g.update_index();
+                for (vector<int>::iterator it = vecupdate.begin(); it != vecupdate.end(); ++it)
+                {
+                    g.update_neigh_vertex(*it);
+                }
+
+                //ToDo
+                //update new edges boundary index
+
+                //std::cout << "00 remove dimer with previous accepted"<<endl;
+                vecupdate.clear();
+                return 2;
+            }
+            else
+            { //removel not succesful
+                //std::cout << "00 remove dimer with previous not accepted"<<endl;
+                return 0;
+            }
+        }
+        }
+        }
+        }
+        //delete[] vco;
+    }
+
+    return -1;
+}
 int attempt_remove_monomer_dimer(Geometry &g, int heid0, gsl_rng *r) /* 102220 THIS NEEDS UPDATE -> MOVE GEOMETRY TO geometry! */
 {
     //std::cout << "in attempt_remove_monomer_dimer" << endl;
@@ -1871,6 +1797,8 @@ int attempt_remove_monomer_dimer(Geometry &g, int heid0, gsl_rng *r) /* 102220 T
         std::exit(-1);
     }
     int nextopindex0 = g.heidtoindex[nextopid0]; // id of prev of opposite edge
+
+
     int prevopindex0 = g.heidtoindex[prevopid0];
     int opnexttype = g.he[nextopindex0].type;
     int opprevtype = g.he[prevopindex0].type;
@@ -1998,7 +1926,7 @@ int attempt_remove_monomer_dimer(Geometry &g, int heid0, gsl_rng *r) /* 102220 T
         if (g.is_boundary(heid_prev_boundary) > 0 && g.he[heindex_prev_boundary].previd == -1 && g.v[g.vidtoindex[g.he[heindex0].vin]].doubleboundary==-1) //delete dimer this and next (inside)(nextopindex) / this and prev (on boundary)  there should be nno bonds between this and previous
         {
             //std::cout << "00 remove dimer with next (previd_boundary) "<<endl;  //remove this and previd_boundary=heid_prev_boundary
-            if (g.he[heindex_prev_boundary].din == 1 || g.he[nextopindex0].din == 1)
+            if (g.he[heindex_prev_boundary].din == 1 || g.he[nextopindex0].din == 1 || g.he[prevopindex0].din == 1)
             {
                 return (-1);
             } //NOREMOVAL DRUG
@@ -2131,7 +2059,7 @@ int attempt_remove_monomer_dimer(Geometry &g, int heid0, gsl_rng *r) /* 102220 T
             //std::cout << "00 remove dimer with previous (heid_next_boundary) "<<endl; //with opid_boundary=heid_next_boundary
             //if (g.he[g.heidtoindex[heid_next_boundary]].din==1) return -1;
             //if (g.he[heindex_next_boundary].din==1 || g.he[g.heidtoindex[prevopid0]].din==1 ) { return(-1);} //WITHDRUG no removal
-            if (g.he[heindex_next_boundary].din == 1 || g.he[prevopindex0].din == 1)
+            if (g.he[heindex_next_boundary].din == 1 || g.he[prevopindex0].din == 1 || g.he[nextopindex0].din == 1)
             {
                 return (-1);
             } //NOREMOVAL DRUG

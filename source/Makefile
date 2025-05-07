@@ -1,5 +1,5 @@
 CC = g++
-DEBUG = #-g 
+DEBUG =-g 
 GSLINC=-I/usr/include
 GSL=-L/usr/lib
 CFLAGS = -Wall $(DEBUG) -O3 -ffast-math -funroll-loops
