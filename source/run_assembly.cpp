@@ -291,7 +291,7 @@ int main(int argc, char **argv)
     //int ssremove = 0;
 
     int runhpc = 0;
-    int test = 0;
+    int test = 1;
 
     int freq_vis = 1000;
     int freq_log = 1000;
@@ -305,7 +305,7 @@ int main(int argc, char **argv)
     if (test == 1)
     {
         freq_vis = 1;
-        freq_log = 1000;
+        freq_log = 1;
         freq_out = 1;
     }
     int minhe_fission = 50;
