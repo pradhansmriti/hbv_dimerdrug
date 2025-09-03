@@ -134,29 +134,19 @@ int main(int argc, char **argv)
         }
     }
 
- for (int i = 0; i < g.Ntype; i++)
-    {
-        for (int j = 0; j < g.Ntype; j++)
-        {
-            if( i == 3 && j == 0)
-                g.gdrug[i][j] = gdrug0;
-            else
-                g.gdrug[i][j] = 0;
-        }
-    }
-
-
     for (int i = 0; i < g.Ntype; i++)
     {
         for (int j = 0; j < g.Ntype; j++)
         {
-	 if(i==0){
-            if( j == 0 || j==3) 
-                g.gdrug[i][j] = gdrug0;}
-	if(i==3){
-		if(j==0 || j==3) 
-			g.gdrug[i][j]= gdrug0;}
-        }
+         if(i==0){
+            if( j == 0)
+                g.gdrug[i][j] = gdrug0+g.gb[3][3]-g.gb[0][0];}
+        else if(i==3){
+                if(j==3)
+                        g.gdrug[i][j]= gdrug0;}
+        else
+       g.gdrug[i][j]=0;
+ }
     }
     //g.gdrug[3][3]=0;
     long unsigned int sweep = 0;
@@ -290,8 +280,8 @@ int main(int argc, char **argv)
     int ssadd = 0;
     //int ssremove = 0;
 
-    int runhpc = 0;
-    int test = 1;
+    int runhpc = 1;
+    int test = 0;
 
     int freq_vis = 1000;
     int freq_log = 1000;

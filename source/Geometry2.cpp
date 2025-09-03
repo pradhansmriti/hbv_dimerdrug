@@ -5158,7 +5158,7 @@ int read_restart_lammps_data_file(Geometry &g, char filename[])
 	}
 	else
 	{
-		make_initial_triangle(g);
+		make_initial_pentamer(g);
 
 	}
 	return (0);
